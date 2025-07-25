@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { uploadFileToAssemblyAI } from "@/lib/upload";
 import {
   Upload,
   FileAudio,
@@ -91,40 +92,54 @@ export default function TranscribePage() {
     setIsUploading(true);
     setUploadProgress(0);
 
-    const formData = new FormData();
-    formData.append("audio", file);
-    if (userPrompt.trim()) {
-      formData.append("userPrompt", userPrompt.trim());
-    }
-
     try {
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prev) => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
-      }, 200);
+      // Step 1: Upload file to AssemblyAI and get URL
+      setUploadProgress(20);
+      const audioUrl = await uploadFileToAssemblyAI(file);
+
+      setUploadProgress(40);
+
+      // Step 2: Send the URL to our backend for transcription
+      const formData = new FormData();
+      formData.append("audioUrl", audioUrl);
+      formData.append("fileName", file.name);
+      formData.append("fileSize", file.size.toString());
+      formData.append("mimeType", file.type);
+      if (userPrompt.trim()) {
+        formData.append("userPrompt", userPrompt.trim());
+      }
+
+      console.log("Uploading transcription with data:", {
+        audioUrl,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: file.type,
+        userPrompt: userPrompt.trim(),
+      });
+
+      setUploadProgress(60);
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
         body: formData,
       });
 
-      clearInterval(progressInterval);
       setUploadProgress(100);
 
       if (response.ok) {
         const result = await response.json();
         setTranscription(result);
       } else {
-        console.error("Upload failed");
+        const error = await response.json();
+        console.error("Transcription failed:", error.error);
+        alert("Transcription failed: " + error.error);
       }
     } catch (error) {
       console.error("Upload error:", error);
+      alert(
+        "Upload failed: " +
+          (error instanceof Error ? error.message : "Unknown error")
+      );
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

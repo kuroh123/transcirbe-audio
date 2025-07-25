@@ -1,7 +1,5 @@
 import { AssemblyAI } from "assemblyai";
-import { writeFile, unlink, mkdir } from "fs/promises";
 import { NextRequest, NextResponse } from 'next/server';
-import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import OpenAI from 'openai';
 import { prisma } from '@/lib/prisma';
@@ -17,11 +15,14 @@ const openai = new OpenAI({
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get('audio') as File;
+    const audioUrl = formData.get('audioUrl') as string;
+    const fileName = formData.get('fileName') as string;
+    const fileSize = parseInt(formData.get('fileSize') as string);
+    const mimeType = formData.get('mimeType') as string;
     const userPrompt = formData.get('userPrompt') as string || '';
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    if (!audioUrl || !fileName) {
+      return NextResponse.json({ error: 'Missing audio URL or file name' }, { status: 400 });
     }
 
     // Check if API keys are configured
@@ -37,39 +38,24 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/mp4', 'audio/m4a', 'audio/ogg'];
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(mimeType)) {
       return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
     }
 
     // Validate file size (25MB limit)
     const maxSize = 25 * 1024 * 1024; // 25MB
-    if (file.size > maxSize) {
+    if (fileSize > maxSize) {
       return NextResponse.json({ error: 'File too large' }, { status: 400 });
     }
 
-    // Save file temporarily
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileName = `${uuidv4()}-${file.name}`;
-    const tmpDir = join(process.cwd(), 'tmp');
-    const filePath = join(tmpDir, fileName);
-
-    // Create tmp directory if it doesn't exist and save file
-    try {
-      await mkdir(tmpDir, { recursive: true });
-      await writeFile(filePath, buffer);
-    } catch (error) {
-      console.error('Error saving file:', error);
-      return NextResponse.json({ error: 'Failed to save file' }, { status: 500 });
-    }
-
     // Create transcription record in database
+    const uniqueFileName = `${uuidv4()}-${fileName}`;
     const transcription = await prisma.transcription.create({
       data: {
-        fileName: fileName,
-        originalName: file.name,
-        fileSize: file.size,
-        mimeType: file.type,
+        fileName: uniqueFileName,
+        originalName: fileName,
+        fileSize: fileSize,
+        mimeType: mimeType,
         status: 'PROCESSING',
       },
     });
@@ -106,9 +92,10 @@ export async function POST(request: NextRequest) {
       // const audioUrl = uploadData.upload_url;
       // console.log('Upload successful, starting transcription...');
 
-      // Start transcription using the local file directly
+      // Start transcription using the AssemblyAI URL directly
+      console.log('Starting transcription with AssemblyAI URL...');
       const transcriptionResponse = await assemblyClient.transcripts.transcribe({
-        audio: filePath, // Use local file path instead of uploaded URL
+        audio_url: audioUrl, // Use the uploaded URL from frontend
         language_code: 'en',
         format_text: true,
         punctuate: true,
@@ -118,12 +105,7 @@ export async function POST(request: NextRequest) {
 
       console.log('Transcription completed successfully');
 
-      // Clean up temporary file
-      try {
-        await unlink(filePath);
-      } catch (unlinkError) {
-        console.error('Error cleaning up file:', unlinkError);
-      }
+      // No need to clean up temporary file since we didn't create one
 
       // Transform AssemblyAI utterances to segments for database
       const segments = transcriptionResponse.utterances?.map((utterance: any, index: number) => ({
@@ -212,12 +194,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Clean up temporary file
-      try {
-        await unlink(filePath);
-      } catch (unlinkError) {
-        console.error('Error cleaning up file:', unlinkError);
-      }
+      // No temporary file to clean up since we used URL
 
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }

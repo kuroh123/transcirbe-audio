@@ -1,140 +1,126 @@
-import Footer from "@/components/footer";
-import Hero from "@/components/hero";
-import Navbar from "@/components/navbar";
-import {
-  ArrowUpRight,
-  CheckCircle2,
-  FileAudio,
-  Headphones,
-  Languages,
-  Type,
-} from "lucide-react";
-import { createClient } from "../../supabase/server";
+import { Upload, FileAudio, Clock, Users, Download, Sparkles } from "lucide-react";
+import Link from "next/link";
 
-export default async function Home() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <Navbar />
-      <Hero />
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileAudio className="h-8 w-8 text-primary" />
+              <h1 className="text-2xl font-bold">TranscribeAI</h1>
+            </div>
+            <Link 
+              href="/transcribe" 
+              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              Start Transcribing
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="py-24">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            AI-Powered Audio Transcription
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Transform your audio files into accurate, timestamped transcripts with speaker identification and AI-generated summaries.
+          </p>
+          <Link 
+            href="/transcribe" 
+            className="bg-primary text-primary-foreground px-8 py-4 rounded-lg text-lg hover:bg-primary/90 transition-colors inline-flex items-center gap-2"
+          >
+            <Upload className="h-5 w-5" />
+            Upload Audio File
+          </Link>
+        </div>
+      </section>
 
       {/* Features Section */}
-      <section id="features" className="py-24 bg-white">
+      <section className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">
-              Powerful Audio Transcription
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Our advanced AI technology converts your audio files into accurate
-              text with timestamps and speaker recognition.
-            </p>
+            <h2 className="text-3xl font-bold mb-4">Powerful Features</h2>
+            <p className="text-muted-foreground">Everything you need for professional audio transcription</p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: <FileAudio className="w-6 h-6" />,
-                title: "Multiple Formats",
-                description: "Support for MP3, WAV, M4A and more",
-              },
-              {
-                icon: <Type className="w-6 h-6" />,
-                title: "High Accuracy",
-                description: "AI-powered transcription with 95%+ accuracy",
-              },
-              {
-                icon: <Languages className="w-6 h-6" />,
-                title: "Multiple Languages",
-                description: "Support for 30+ languages worldwide",
-              },
-              {
-                icon: <Headphones className="w-6 h-6" />,
-                title: "Clear Timestamps",
-                description: "Precise timing for every section",
-              },
-            ].map((feature, index) => (
-              <div
-                key={index}
-                className="p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
-              >
-                <div className="text-blue-600 mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="p-6 rounded-xl border bg-card">
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <FileAudio className="h-6 w-6 text-primary" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Three simple steps to get your audio transcribed
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-blue-600">1</span>
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Upload Your Audio</h3>
-              <p className="text-gray-600">
-                Drag & drop or browse to upload your audio file in any common
-                format
+              <h3 className="font-semibold mb-2">Multiple Formats</h3>
+              <p className="text-sm text-muted-foreground">
+                Support for MP3, WAV, M4A, and other popular audio formats
               </p>
             </div>
-            <div className="text-center p-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-blue-600">2</span>
+            
+            <div className="p-6 rounded-xl border bg-card">
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Clock className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">AI Transcription</h3>
-              <p className="text-gray-600">
-                Our advanced AI processes your audio with high accuracy
+              <h3 className="font-semibold mb-2">Timestamp Accuracy</h3>
+              <p className="text-sm text-muted-foreground">
+                Precise word and sentence-level timestamps for easy navigation
               </p>
             </div>
-            <div className="text-center p-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-blue-600">3</span>
+            
+            <div className="p-6 rounded-xl border bg-card">
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Users className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Get Your Text</h3>
-              <p className="text-gray-600">
-                Download or copy your transcription with timestamps
+              <h3 className="font-semibold mb-2">Speaker Identification</h3>
+              <p className="text-sm text-muted-foreground">
+                Automatic speaker diarization to identify different voices
+              </p>
+            </div>
+            
+            <div className="p-6 rounded-xl border bg-card">
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2">AI Summaries</h3>
+              <p className="text-sm text-muted-foreground">
+                Get intelligent summaries and key points from your transcripts
+              </p>
+            </div>
+            
+            <div className="p-6 rounded-xl border bg-card">
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Download className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2">Export Options</h3>
+              <p className="text-sm text-muted-foreground">
+                Download transcripts as TXT or PDF files
+              </p>
+            </div>
+            
+            <div className="p-6 rounded-xl border bg-card">
+              <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
+                <Clock className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2">Fast Processing</h3>
+              <p className="text-sm text-muted-foreground">
+                Quick turnaround times powered by OpenAI Whisper
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-blue-600 text-white">
+      {/* Footer */}
+      <footer className="py-12 border-t bg-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Transcribe Your Audio?
-          </h2>
-          <p className="text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of users who save time with our audio transcription
-            service.
+          <p className="text-muted-foreground">
+            TranscribeAI - Powered by OpenAI Whisper
           </p>
-          <a
-            href="/dashboard"
-            className="inline-flex items-center px-6 py-3 text-blue-600 bg-white rounded-lg hover:bg-gray-100 transition-colors font-medium"
-          >
-            Start Transcribing Now
-            <ArrowUpRight className="ml-2 w-4 h-4" />
-          </a>
         </div>
-      </section>
-
-      <Footer />
+      </footer>
     </div>
   );
 }

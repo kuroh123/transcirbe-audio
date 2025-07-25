@@ -1,7 +1,16 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Upload, FileAudio, Clock, Download, Sparkles, Play, Pause, User } from "lucide-react";
+import {
+  Upload,
+  FileAudio,
+  Clock,
+  Download,
+  Sparkles,
+  Play,
+  Pause,
+  User,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -19,7 +28,7 @@ interface TranscriptionSegment {
 interface Transcription {
   id: string;
   fileName: string;
-  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  status: "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
   text: string | null;
   summary: string | null;
   segments: TranscriptionSegment[];
@@ -27,7 +36,9 @@ interface Transcription {
 
 export default function TranscribePage() {
   const [file, setFile] = useState<File | null>(null);
-  const [transcription, setTranscription] = useState<Transcription | null>(null);
+  const [transcription, setTranscription] = useState<Transcription | null>(
+    null
+  );
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -50,12 +61,12 @@ export default function TranscribePage() {
     setUploadProgress(0);
 
     const formData = new FormData();
-    formData.append('audio', file);
+    formData.append("audio", file);
 
     try {
       // Simulate upload progress
       const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
+        setUploadProgress((prev) => {
           if (prev >= 90) {
             clearInterval(progressInterval);
             return prev;
@@ -64,8 +75,8 @@ export default function TranscribePage() {
         });
       }, 200);
 
-      const response = await fetch('/api/transcribe', {
-        method: 'POST',
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
         body: formData,
       });
 
@@ -76,10 +87,10 @@ export default function TranscribePage() {
         const result = await response.json();
         setTranscription(result);
       } else {
-        console.error('Upload failed');
+        console.error("Upload failed");
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -107,17 +118,19 @@ export default function TranscribePage() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const downloadTranscript = async (format: 'txt' | 'pdf') => {
+  const downloadTranscript = async (format: "txt" | "pdf") => {
     if (!transcription) return;
-    
-    const response = await fetch(`/api/export?id=${transcription.id}&format=${format}`);
+
+    const response = await fetch(
+      `/api/export?id=${transcription.id}&format=${format}`
+    );
     if (response.ok) {
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
       a.download = `${transcription.fileName}.${format}`;
       a.click();
@@ -149,13 +162,15 @@ export default function TranscribePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div 
+                <div
                   className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <FileAudio className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-lg font-medium">Choose an audio file</p>
-                  <p className="text-sm text-gray-600">MP3, WAV, M4A up to 25MB</p>
+                  <p className="text-sm text-gray-600">
+                    MP3, WAV, M4A up to 25MB
+                  </p>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -164,7 +179,7 @@ export default function TranscribePage() {
                     className="hidden"
                   />
                 </div>
-                
+
                 {file && (
                   <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
@@ -176,12 +191,12 @@ export default function TranscribePage() {
                         </p>
                       </div>
                     </div>
-                    <Button 
-                      onClick={handleUpload} 
+                    <Button
+                      onClick={handleUpload}
                       disabled={isUploading}
                       className="min-w-[120px]"
                     >
-                      {isUploading ? 'Processing...' : 'Transcribe'}
+                      {isUploading ? "Processing..." : "Transcribe"}
                     </Button>
                   </div>
                 )}
@@ -216,14 +231,20 @@ export default function TranscribePage() {
                     size="sm"
                     className="min-w-[80px]"
                   >
-                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                    {isPlaying ? 'Pause' : 'Play'}
+                    {isPlaying ? (
+                      <Pause className="h-4 w-4" />
+                    ) : (
+                      <Play className="h-4 w-4" />
+                    )}
+                    {isPlaying ? "Pause" : "Play"}
                   </Button>
                   <div className="flex-1">
                     <audio
                       ref={audioRef}
                       src={file ? URL.createObjectURL(file) : undefined}
-                      onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                      onTimeUpdate={(e) =>
+                        setCurrentTime(e.currentTarget.currentTime)
+                      }
                       onPlay={() => setIsPlaying(true)}
                       onPause={() => setIsPlaying(false)}
                       className="w-full"
@@ -248,7 +269,9 @@ export default function TranscribePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700 leading-relaxed">{transcription.summary}</p>
+                    <p className="text-gray-700 leading-relaxed">
+                      {transcription.summary}
+                    </p>
                   </CardContent>
                 </Card>
               )}
@@ -263,7 +286,7 @@ export default function TranscribePage() {
                     </CardTitle>
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => downloadTranscript('txt')}
+                        onClick={() => downloadTranscript("txt")}
                         variant="outline"
                         size="sm"
                         className="flex items-center gap-2"
@@ -272,7 +295,7 @@ export default function TranscribePage() {
                         TXT
                       </Button>
                       <Button
-                        onClick={() => downloadTranscript('pdf')}
+                        onClick={() => downloadTranscript("pdf")}
                         variant="outline"
                         size="sm"
                         className="flex items-center gap-2"
@@ -296,7 +319,10 @@ export default function TranscribePage() {
                         </div>
                         {segment.speaker && (
                           <div className="flex-shrink-0">
-                            <Badge variant="secondary" className="flex items-center gap-1">
+                            <Badge
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
                               <User className="h-3 w-3" />
                               {segment.speaker}
                             </Badge>

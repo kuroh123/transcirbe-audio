@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TranscribeAI - AI-Powered Audio Transcription",
+  title: "Transcriptron - AI-Powered Audio Transcription",
   description:
     "Transform your audio files into accurate, timestamped transcripts with speaker identification",
 };

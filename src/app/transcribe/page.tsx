@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import {
   Upload,
   FileAudio,
@@ -10,11 +11,14 @@ import {
   Play,
   Pause,
   User,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 interface TranscriptionSegment {
   id: string;
@@ -43,8 +47,35 @@ export default function TranscribePage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [userPrompt, setUserPrompt] = useState("");
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Clean up audio URL when file changes or component unmounts
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+
+  useEffect(() => {
+    // Clean up previous URL when file changes
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+    }
+
+    // Create new URL for the file
+    if (file) {
+      const newAudioUrl = URL.createObjectURL(file);
+      setAudioUrl(newAudioUrl);
+      setIsPlaying(false); // Reset playing state when new file is selected
+    } else {
+      setAudioUrl(null);
+    }
+  }, [file]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -62,6 +93,9 @@ export default function TranscribePage() {
 
     const formData = new FormData();
     formData.append("audio", file);
+    if (userPrompt.trim()) {
+      formData.append("userPrompt", userPrompt.trim());
+    }
 
     try {
       // Simulate upload progress
@@ -105,13 +139,17 @@ export default function TranscribePage() {
   };
 
   const togglePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+    if (!audioRef.current) return;
+
+    const audio = audioRef.current;
+
+    if (audio.paused) {
+      audio.play().catch((error) => {
+        console.error("Error playing audio:", error);
+        setIsPlaying(false);
+      });
+    } else {
+      audio.pause();
     }
   };
 
@@ -143,9 +181,19 @@ export default function TranscribePage() {
       {/* Header */}
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-2">
-            <FileAudio className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">TranscribeAI</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileAudio className="h-8 w-8 text-primary" />
+              <h1 className="text-2xl font-bold">Transcriptron</h1>
+            </div>
+            <nav className="flex gap-2">
+              <Link href="/">
+                <Button variant="outline">Home</Button>
+              </Link>
+              <Link href="/history">
+                <Button variant="outline">History</Button>
+              </Link>
+            </nav>
           </div>
         </div>
       </header>
@@ -181,22 +229,43 @@ export default function TranscribePage() {
                 </div>
 
                 {file && (
-                  <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <FileAudio className="h-5 w-5 text-primary" />
-                      <div>
-                        <p className="font-medium">{file.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {(file.size / (1024 * 1024)).toFixed(2)} MB
-                        </p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <FileAudio className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="font-medium">{file.name}</p>
+                          <p className="text-sm text-gray-600">
+                            {(file.size / (1024 * 1024)).toFixed(2)} MB
+                          </p>
+                        </div>
                       </div>
                     </div>
+
+                    {/* User Prompt */}
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="userPrompt"
+                        className="flex items-center gap-2"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Ask a question about the transcript (optional)
+                      </Label>
+                      <Textarea
+                        id="userPrompt"
+                        placeholder="e.g., What are the main action items discussed? Who are the key participants? Summarize the technical decisions made..."
+                        value={userPrompt}
+                        onChange={(e) => setUserPrompt(e.target.value)}
+                        className="min-h-[80px]"
+                      />
+                    </div>
+
                     <Button
                       onClick={handleUpload}
                       disabled={isUploading}
-                      className="min-w-[120px]"
+                      className="w-full min-h-[44px]"
                     >
-                      {isUploading ? "Processing..." : "Transcribe"}
+                      {isUploading ? "Processing..." : "Transcribe & Analyze"}
                     </Button>
                   </div>
                 )}
@@ -240,15 +309,23 @@ export default function TranscribePage() {
                   </Button>
                   <div className="flex-1">
                     <audio
+                      key={file?.name || "no-file"}
                       ref={audioRef}
-                      src={file ? URL.createObjectURL(file) : undefined}
+                      src={audioUrl || undefined}
                       onTimeUpdate={(e) =>
                         setCurrentTime(e.currentTarget.currentTime)
                       }
                       onPlay={() => setIsPlaying(true)}
                       onPause={() => setIsPlaying(false)}
+                      onEnded={() => setIsPlaying(false)}
+                      onLoadStart={() => setIsPlaying(false)}
+                      onError={(e) => {
+                        console.error("Audio error:", e);
+                        setIsPlaying(false);
+                      }}
                       className="w-full"
                       controls
+                      preload="metadata"
                     />
                   </div>
                 </div>

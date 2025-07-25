@@ -1,4 +1,4 @@
-# TranscribeAI - AI-Powered Audio Transcription MVP
+# Transcriptron - AI-Powered Audio Transcription MVP
 
 A modern web application for transcribing audio files using OpenAI's Whisper API with features like speaker diarization, timestamped transcripts, AI summaries, and export capabilities.
 
@@ -32,6 +32,7 @@ A modern web application for transcribing audio files using OpenAI's Whisper API
 ### Installation
 
 1. **Clone and install dependencies**:
+
    ```bash
    git clone <repository-url>
    cd transcribe_audio
@@ -40,33 +41,37 @@ A modern web application for transcribing audio files using OpenAI's Whisper API
 
 2. **Set up environment variables**:
    Copy the `.env` file and update the following variables:
+
    ```env
    # Database
    DATABASE_URL="postgresql://username:password@localhost:5432/transcribe_audio?schema=public"
-   
+
    # OpenAI API Key
    OPENAI_API_KEY="your_openai_api_key_here"
-   
+
    # Next.js (optional)
    NEXTAUTH_SECRET="your_nextauth_secret_here"
    NEXTAUTH_URL="http://localhost:3000"
    ```
 
 3. **Set up the database**:
+
    ```bash
    # Push the schema to your database
    npm run db:push
-   
+
    # Or use migrations (recommended for production)
    npm run db:migrate
    ```
 
 4. **Generate Prisma client**:
+
    ```bash
    npm run db:generate
    ```
 
 5. **Start the development server**:
+
    ```bash
    npm run dev
    ```
@@ -116,21 +121,23 @@ src/
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `OPENAI_API_KEY` | OpenAI API key for Whisper/GPT | Yes |
-| `NEXTAUTH_SECRET` | Secret for NextAuth (optional) | No |
-| `NEXTAUTH_URL` | Base URL for NextAuth (optional) | No |
+| Variable          | Description                      | Required |
+| ----------------- | -------------------------------- | -------- |
+| `DATABASE_URL`    | PostgreSQL connection string     | Yes      |
+| `OPENAI_API_KEY`  | OpenAI API key for Whisper/GPT   | Yes      |
+| `NEXTAUTH_SECRET` | Secret for NextAuth (optional)   | No       |
+| `NEXTAUTH_URL`    | Base URL for NextAuth (optional) | No       |
 
 ## Limitations & Future Improvements
 
 ### Current Limitations
+
 - Basic speaker diarization (alternating speakers)
 - 25MB file size limit
 - Simplified confidence scoring
 
 ### Potential Improvements
+
 - Advanced speaker diarization with voice recognition
 - Support for larger files with chunking
 - Real-time transcription for live audio
